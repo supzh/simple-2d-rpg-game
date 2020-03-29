@@ -1,0 +1,7 @@
+{
+    "name": "ethercube/simple-2d-rpg-game",
+    "type": "project",
+    "require": {
+		"cboden/ratchet": "^0.4.0"
+    }
+}

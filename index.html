@@ -1,0 +1,692 @@
+<!doctype html>
+<html>
+<head>
+
+<style>
+textarea {outline:none;background:#fff;width:auto;min-width:195px;max-width:195px;border:none;min-height:200px;font-size:14px;padding:10px;line-height:24px;color:#666;}
+</style>
+<script src="js/jquery.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+</head>
+<body>
+
+<div id="app">
+	
+	<div style="float:left;clear:both;">
+
+
+	  <div id="gameon" style="float:right;margin-left:10px;">
+		<input placeholder="点击此处然后使用方向键控制主角" @keydown="getkeyup" v-model="userkeyup" style="background:#fafafa;width:530px;height:30px;font-size:14px;padding:10px;line-height:24px;" />
+
+		<input placeholder="点击此处发送消息" v-model="say" style="background:#fafafa;width:530px;height:30px;font-size:14px;padding:10px;line-height:24px;" /><button @click="confirmsay">发送</button>
+
+		  <div style="position:absolute;border:1px solid #ddd;width:532px;height:362px;overflow:hidden;">
+			  <div style="width:530px;height:360px;position:absolute;overflow:hidden;background:#fefff2;">
+				<div id="background" style="position:absolute; z-index:1;width:1200px;height:3039px;"></div>
+			  </div>
+
+			  <div v-for="npc in npclist" class="npc" :class="'npc-'+npc.id" style="z-index:1;position:absolute;margin-left:0px;margin-top:0px;width:200px;height:200px;">
+				<div style="margin:0 auto;width:200px;">
+				<div>{{npc.name}} （按Z键跟她聊天）</div>
+				<div style="border:1px solid rgb(145, 205, 255);background:rgb(145, 205, 255);font-size:30px;text-align:center;border-radius:200px;height:59px;width:59px;line-height:59px;color:#fff;">>.<</div>
+			  </div>
+			  </div>
+			  
+			  
+			  <div v-for="ah in users" class="anotherhero" :class="'ah-' + ah.id"  style="z-index:1;position:absolute;margin-left:0px;margin-top:0px;width:200px;height:200px;">
+				<div style="margin:0 auto;width:200px;">
+				<div class="ahsay" :class="'ahsay-'+ah.id" style="position:absolute;margin-top:-50px;background:#fff;border:1px solid #ddd;height:50px;"></div>
+				<div>{{ah.user_name}} </div>
+				<div style="border:1px solid #fff;background:#fafafa;font-size:30px;text-align:center;border-radius:200px;height:59px;width:59px;line-height:59px;color:#fff;"><img :src="ah.headimg" /></div>
+			  </div>
+			  </div>
+
+			  <div id="hero" style="z-index:1;position:absolute;margin-left:236px;margin-top:151px;">
+				<div class="herosay" style="position:absolute;margin-top:-50px;background:#fff;border:1px solid #ddd;height:50px;"></div>
+				<div>(我自己)上下左右移动</div>
+				<div style="border:1px solid #f5dc5c;background:#f5dc5c;font-size:30px;text-align:center;border-radius:200px;height:59px;width:59px;line-height:59px;color:#fff;">^-^</div>
+
+			  </div>
+		
+
+			  <div id="text-dialog" style="display:none;position:absolute;z-index:2;width:530px;margin-top:50px;height:159px;">
+				  <div style="float:left;height:200px;width:530px;">
+					  <div style="float:left;width:200px;height:200px;"></div>
+					  <div style="float:right;width:200px;height:200px;">
+					  </div>
+				  </div>
+
+					<div style="float:left;clear:both;height:80px;width:530px;">
+
+					<div id="text-dialog-left" style="float:left;min-width:200px;max-width:265px;padding:10px;line-height:16px;border-top:1px solid #ccc;border:1px solid #ccc;background:#fff;height:80px;">
+					  啊，你终于出现了
+					</div>
+					<div id="text-dialog-right" style="float:right;min-width:200px;max-width:265px;padding:10px;line-height:16px;border-top:1px solid #ccc;border:1px solid #ccc;background:#fff;height:80px;">
+					  ...
+					</div>
+
+				  </div>
+					<div style="float:left;clear:both;height:20px;width:530px;">
+					  （按空格继续 按X键关闭对话）
+					</div>
+
+			  </div>
+
+		  </div>
+		  
+
+	  </div>
+	</div>
+
+	
+</div>
+
+
+
+<script>
+
+     var app = new Vue({
+		el: '#app',
+        data: {
+				say:'',
+				users:[],
+				npclist:[
+					{
+						id:1, name:'商店营业员',
+						 hp: 1200,
+						  mp: 2000,
+						  lv:0,
+						  now_exp:0,
+						  need_exp:10,
+					},
+					
+					{
+						id:2, name:'看门员A',
+						 hp: 1200,
+						  mp: 2000,
+						  lv:0,
+						  now_exp:0,
+						  need_exp:10,
+					},
+					
+						{
+						id:3, name:'看门员B',
+						 hp: 1200,
+						  mp: 2000,
+						  lv:0,
+						  now_exp:0,
+						  need_exp:10,
+					},
+					
+					
+						{
+						id:4, name:'看门员C',
+						 hp: 1200,
+						  mp: 2000,
+						  lv:0,
+						  now_exp:0,
+						  need_exp:10,
+					},
+					
+					
+						{
+						id:5, name:'看门员D',
+						 hp: 1200,
+						  mp: 2000,
+						  lv:0,
+						  now_exp:0,
+						  need_exp:10,
+					},
+						{
+						id:6, name:'看门员E',
+						 hp: 1200,
+						  mp: 2000,
+						  lv:0,
+						  now_exp:0,
+						  need_exp:10,
+					},
+				],
+				npc_position:[
+					{
+						id:1,
+						x:0,
+						y:0,
+						rx:0,
+						ry:0,
+					},
+					{
+						id:2,
+						x:500,
+						y:500,
+						rx:0,
+						ry:0,
+					},
+					
+					{
+						id:3,
+						x:-500,
+						y:0,
+						rx:0,
+						ry:0,
+					},
+					
+						{
+						id:4,
+						x:500,
+						y:0,
+						rx:0,
+						ry:0,
+					},
+					
+			
+					
+						{
+						id:5,
+						x:0,
+						y:500,
+						rx:0,
+						ry:0,
+					},
+					
+					
+					
+						{
+						id:6,
+						x:0,
+						y:-500,
+						rx:0,
+						ry:0,
+					},
+				],
+                hero_position:{
+                  x:0,
+                  y:0,
+				  rx:0,
+				  ry:0,
+                },
+                hero_info: {
+                  name: 'I am hero',
+                  hp: 1200,
+                  mp: 2000,
+                  lv:0,
+                  now_exp:0,
+                  need_exp:10,
+                },
+                background_position:{
+                  x:0,
+                  y:0
+                },
+                userkeyup:'',
+				npc_flow: [
+                  {}
+                ],
+				conn:null,
+				users_position:[],
+				userId:1,
+        },
+		beforeDestroy(){
+			this.conn.close()
+		},
+        created(){
+		
+			
+		
+		 this.getUsers()
+        },
+		mounted(){
+        
+        },
+        methods: {
+			confirmsay(){
+				
+				var herosay = {
+					op:'say',
+					msg:this.say,
+					user_id:this.userId,
+				}
+				
+				//this.conn.send(JSON.stringify(herosay))
+				var that =this
+					$(function(){
+						$('.herosay').html(that.say)
+						that.say = ''
+					})
+				
+				
+				
+				
+				
+			},
+			refreshNPCPosition(){
+				
+				var that =this
+				for(var i in this.npc_position) {
+					var position = this.npc_position[i]
+					$(function(){
+						$('.npc-'+position.id).animate({marginTop: position.y + 'px'},0);
+						$('.npc-'+position.id).animate({marginLeft: position.x + 'px'},0);
+					})
+
+				}
+				
+			},
+			getUsersPosition(){
+				var that =this
+				for(var i in this.users) {
+					var position = new Object
+					position.x = 0;
+					position.y = 0;
+					position.rx = 0;
+					position.ry = 0;
+					position.user_id = this.users[i].id
+					
+					$(function(){
+						$('.ah-'+that.users[i].id).animate({marginTop: position.y + 'px'},0);
+						$('.ah-'+that.users[i].id).animate({marginLeft: position.x + 'px'},0);
+					})
+
+					this.users_position.push(position)
+				}
+				
+			},
+			getUsers(){
+				 /*axios.get('http://192.168.156./sys/getmsgusers').then(function (response) {                    
+                   this.users = response.data
+				   for(var i in this.users) {
+					this.users[i].online=false
+				   }
+				   this.getUsersPosition()
+				   this.gameconn()
+		
+                })*/
+			},
+			
+			gameconn(){
+			var wshost = 'ws://192.168.156.2:8080'
+				console.log(wshost)
+					var that =this
+			var conn = new WebSocket(wshost);
+			conn.onopen = function(e) {
+				var reg = { op:'reg', user_id:this.userId}
+				//conn.send(JSON.stringify(reg));
+				that.heroMoveUp()
+				that.heroMoveDown()
+				that.heroMoveLeft()
+				that.heroMoveRight()
+			};
+
+			conn.onmessage = function(e) {
+				var msg = JSON.parse(e.data)
+				if(msg.op == 'getmsg') {
+					var from_user
+					for(var i in that.users) {
+						var us = that.users[i]
+						
+						if(us.id == msg.from_user_id) {
+							from_user = us 
+							break
+						}
+					}
+				}
+				
+				if(msg.op == 'say') {
+					
+					if(msg.user_id == this.userId){
+						return
+					}
+					
+					$(function(){
+						$('.ahsay-'+msg.user_id).html(msg.msg)
+					})
+					
+				}
+				
+				if(msg.op == 'heromove') {
+					
+					
+					if(msg.user_id == this.userId) {
+						return
+					}
+					
+					for(var i in that.users_position) {
+						
+						if(that.users_position[i].user_id == msg.user_id) {
+							that.users_position[i].x = msg.x
+							that.users_position[i].y = msg.y
+							
+							that.ahmove(that.users_position[i], msg.x, msg.y)
+							
+							break
+						}
+						
+					}
+					for(var ii  in that.users) {
+							if(that.users[ii].id == msg.user_id) {
+								that.users[ii].online = true
+							}
+						}
+					
+				}
+				
+				if(msg.op == 'getonlineuser') {
+				
+					for(var i  in msg.users) {
+						var online_user_id =   (msg.users[i])
+						for(var ii  in that.users) {
+							if(that.users[ii].id == online_user_id) {
+								that.users[ii].online = true
+							}
+						}
+					}	
+					setTimeout(function(){
+						var get = { op:'getonlineuser'}
+						//that.conn.send(JSON.stringify(get));
+					}, 10000)
+					
+				}
+			};
+			this.conn = conn
+			
+			},
+			ahmove(position_user, x, y){
+			
+				var that =this
+			
+				$(function(){
+					//$('.ah-'+position_user.user_id).animate({marginTop: ( that.background_position.y -   ( y  ) + position_user.ry ) + 'px'},0);
+					//$('.ah-'+position_user.user_id).animate({marginLeft: (  that.background_position.x -   ( x  ) + position_user.rx ) + 'px'},0);
+					
+					$('.ah-'+position_user.user_id).animate({marginTop: (151 + ( y  ) + position_user.ry ) + 'px'},0);
+					$('.ah-'+position_user.user_id).animate({marginLeft: ( 236 + ( x  ) + position_user.rx ) + 'px'},0);
+				})
+			},
+			
+			heroMoveUp(){
+				 var step = 60
+                var move_speed = 100
+				 var that = this
+                 $(function(){
+					for(var i in that.users_position) {
+						var ah = that.users_position[i]
+						var distance =  ah.ry + ah.y + step +151
+						$('.ah-'+ah.user_id).animate({marginTop: distance + 'px'},100);
+						ah.ry+=step
+					}
+					
+					for(var i in that.npc_position) {
+						var ah = that.npc_position[i]
+						var distance =  ah.ry + ah.y + step
+						$('.npc-'+ah.id).animate({marginTop: distance + 'px'},100);
+						ah.ry+=step
+					}
+					
+					 
+                    var background_distance = that.background_position.y + step
+                 
+                    $('#background').animate({marginTop: background_distance + 'px'},move_speed);
+                      that.background_position.y= that.background_position.y + step
+				 })
+				
+			},
+			
+				
+			heroMoveDown(){
+				 var step = 60
+                var move_speed = 100
+				 var that = this
+                 $(function(){
+				  for(var i in that.users_position) {
+							var ah = that.users_position[i]
+							var distance =  (ah.ry + ah.y) - step  +151
+							$('.ah-'+ah.user_id).animate({marginTop: distance + 'px'},100);
+							ah.ry-=step
+						}
+						
+						 for(var i in that.npc_position) {
+							var ah = that.npc_position[i]
+							var distance =  (ah.ry + ah.y) - step
+							$('.npc-'+ah.id).animate({marginTop: distance + 'px'},100);
+							ah.ry-=step
+						}
+						
+                      var background_distance = that.background_position.y - step
+                      $('#background').animate({marginTop: background_distance + 'px'},move_speed);
+                        that.background_position.y= that.background_position.y - step
+
+				 })
+				
+			},
+			heroMoveLeft(){
+				 var step = 60
+                var move_speed = 100
+				 var that = this
+                 $(function(){
+				  for(var i in that.users_position) {
+							var ah = that.users_position[i]
+							
+							var distance =  ah.rx + ah.x + step +236
+							$('.ah-'+ah.user_id).animate({marginLeft: distance + 'px'},100);
+							ah.rx+=step
+						}
+						
+						 for(var i in that.npc_position) {
+							var ah = that.npc_position[i]
+							
+							var distance =  ah.rx + ah.x + step
+							$('.npc-'+ah.id).animate({marginLeft: distance + 'px'},100);
+							ah.rx+=step
+						}
+						
+
+                    var background_distance = that.background_position.x + step
+                    console.log(background_distance)
+                    $('#background').animate({marginLeft: background_distance + 'px'},move_speed);
+                      that.background_position.x= that.background_position.x + step
+
+				 })
+				
+			},
+			
+			heroMoveRight(){
+				 var step = 60
+                var move_speed = 100
+				 var that = this
+                 $(function(){
+				 for(var i in that.users_position) {
+						var ah = that.users_position[i]
+						var distance =  (ah.rx + ah.x) - step +236
+						$('.ah-'+ah.user_id).animate({marginLeft: distance + 'px'},100);
+						ah.rx-=step
+					}
+					for(var i in that.npc_position) {
+						var ah = that.npc_position[i]
+						var distance =  (ah.rx + ah.x) - step
+						$('.npc-'+ah.id).animate({marginLeft: distance + 'px'},100);
+						ah.rx-=step
+					}
+					
+                    var background_distance = that.background_position.x - step
+
+                    $('#background').animate({marginLeft: background_distance + 'px'},move_speed);
+					
+                      that.background_position.x= that.background_position.x - step
+
+				 })
+				
+			},
+		
+			getkeyup(event){
+              var that = this
+              $(function(){
+                var step = 60
+                var move_speed = 100
+                switch(event.code) {
+                  
+                    case 'ArrowUp':
+					
+					for(var i in that.users_position) {
+						var ah = that.users_position[i]
+						var distance =  ah.ry + ah.y + step +151
+						$('.ah-'+ah.user_id).animate({marginTop: distance + 'px'},100);
+						ah.ry+=step
+					}
+					
+					for(var i in that.npc_position) {
+						var ah = that.npc_position[i]
+						var distance =  ah.ry + ah.y + step
+						$('.npc-'+ah.id).animate({marginTop: distance + 'px'},100);
+						ah.ry+=step
+					}
+					
+					 
+                    var background_distance = that.background_position.y + step
+                 
+                    $('#background').animate({marginTop: background_distance + 'px'},move_speed);
+                      that.background_position.y= that.background_position.y + step
+                    break;
+
+                    case 'ArrowDown':
+					  for(var i in that.users_position) {
+							var ah = that.users_position[i]
+							var distance =  (ah.ry + ah.y) - step  +151
+							$('.ah-'+ah.user_id).animate({marginTop: distance + 'px'},100);
+							ah.ry-=step
+						}
+						
+						 for(var i in that.npc_position) {
+							var ah = that.npc_position[i]
+							var distance =  (ah.ry + ah.y) - step
+							$('.npc-'+ah.id).animate({marginTop: distance + 'px'},100);
+							ah.ry-=step
+						}
+						
+                      var background_distance = that.background_position.y - step
+                      $('#background').animate({marginTop: background_distance + 'px'},move_speed);
+                        that.background_position.y= that.background_position.y - step
+
+                    break;
+
+                    case 'ArrowLeft':
+	 
+					   for(var i in that.users_position) {
+							var ah = that.users_position[i]
+							
+							var distance =  ah.rx + ah.x + step +236
+							$('.ah-'+ah.user_id).animate({marginLeft: distance + 'px'},100);
+							ah.rx+=step
+						}
+						
+						 for(var i in that.npc_position) {
+							var ah = that.npc_position[i]
+							
+							var distance =  ah.rx + ah.x + step
+							$('.npc-'+ah.id).animate({marginLeft: distance + 'px'},100);
+							ah.rx+=step
+						}
+						
+
+                    var background_distance = that.background_position.x + step
+                    console.log(background_distance)
+                    $('#background').animate({marginLeft: background_distance + 'px'},move_speed);
+                      that.background_position.x= that.background_position.x + step
+                    break;
+
+                    case 'ArrowRight':
+					
+					 for(var i in that.users_position) {
+						var ah = that.users_position[i]
+						var distance =  (ah.rx + ah.x) - step +236
+						$('.ah-'+ah.user_id).animate({marginLeft: distance + 'px'},100);
+						ah.rx-=step
+					}
+					for(var i in that.npc_position) {
+						var ah = that.npc_position[i]
+						var distance =  (ah.rx + ah.x) - step
+						$('.npc-'+ah.id).animate({marginLeft: distance + 'px'},100);
+						ah.rx-=step
+					}
+					
+                    var background_distance = that.background_position.x - step
+
+                    $('#background').animate({marginLeft: background_distance + 'px'},move_speed);
+					
+                      that.background_position.x= that.background_position.x - step
+                    break;
+					
+					case 'Space':
+                    $('#text-dialog-left').html('请您按X键结束对话..');
+                    break;
+                    case 'KeyX':
+                      $('#text-dialog').slideUp(300);
+                    break;
+                    case 'KeyZ':
+					
+					
+					for(var i in that.npc_position) {
+						var _npc = that.npc_position[i]
+			
+			
+					var npc_x_ = _npc.x + _npc.rx + 200;
+                      var npc_y_ = _npc.y + _npc.rx + 200;
+					  
+                      var hero_x = 236;
+                      var hero_y = 151;
+					  
+					  if( hero_x > _npc.x && hero_x < npc_x_ && hero_y > _npc.y && hero_y < npc_y_ ) {
+                        console.log('start ')
+                        $('#text-dialog').slideDown(300);
+
+                        $('#text-dialog-left').html('商店休息中..');
+
+                      } else {
+                        console.log('hero-x' + that.hero_position.x);
+                        console.log('hero-y' + that.hero_position.y);
+                        console.log('npc-x' + _npc.x);
+                        console.log('npc-y' + _npc.y);
+                        console.log('npc-x_' + npc_x_);
+                        console.log('npc-y_' + npc_y_);
+                      }
+					  
+						
+						
+					}
+					
+					
+					
+                     
+
+                      
+
+                    break;
+                }
+
+				that.hero_position.x =  that.background_position.x
+				that.hero_position.y =  that.background_position.y
+				
+				var heroposition = {
+					op:'heromove',
+					user_id : this.userId,
+					x: that.hero_position.x*-1,
+					y: that.hero_position.y*-1,
+				}
+				console.log(that.conn)
+				//that.conn.send(JSON.stringify(heroposition))
+
+              })
+
+
+          }  
+		  
+        }
+    })
+	
+	
+	
+</script>
+
+</body>
+</html>
+
